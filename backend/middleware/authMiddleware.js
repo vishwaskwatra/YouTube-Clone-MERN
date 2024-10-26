@@ -10,8 +10,6 @@ export const authMiddleware = (req, res, next) => {
   try {
     // Verify the token using the secret
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Attach user info to request
     req.user = decoded;
     next();
   } catch (error) {

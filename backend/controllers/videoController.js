@@ -11,7 +11,7 @@ export const createVideo = async (req, res) => {
         description,
         thumbnailUrl,
         videoUrl,
-        uploader: req.user.id, // Set uploader from the authenticated user's ID
+        uploader: req.user.id,
       });
   
       const savedVideo = await newVideo.save();
@@ -33,35 +33,29 @@ export const getAllVideos = async (req, res) => {
 
 // Update video
 export const updateVideo = async (req, res) => {
-    try {
-      // Finding and updating the video with the new data
-      const updatedVideo = await Video.findByIdAndUpdate(
-        req.params.id, 
-        {
-          $set: {
-            title: req.body.title,
-            description: req.body.description,
-            thumbnailUrl: req.body.thumbnailUrl,
-            videoUrl: req.body.videoUrl
-          }
-        },
-        { new: true } // Return the updated document
-      );
+    const { videoId } = req.params;
+    const { title, description, thumbnailUrl, videoUrl } = req.body;
   
-      // If no video is found
-      if (!updatedVideo) {
+    try {
+      const video = await Video.findById(videoId);
+  
+      if (!video) {
         return res.status(404).json({ message: 'Video not found' });
       }
   
-      // Send the updated video back in the response
-      res.status(200).json(updatedVideo);
+      // Update only the fields provided in the request body
+      if (title) video.title = title;
+      if (description) video.description = description;
+      if (thumbnailUrl) video.thumbnailUrl = thumbnailUrl;
+      if (videoUrl) video.videoUrl = videoUrl;
   
+      const updatedVideo = await video.save();
+      res.json(updatedVideo);
     } catch (error) {
-      console.error("Update Video Error:", error); // Log the error for debugging
-      res.status(500).json({ message: 'Failed to update video', error });
+      console.error("Failed to update video:", error);
+      res.status(500).json({ message: 'Server error' });
     }
   };
-  
 
 // Delete video
 export const deleteVideo = async (req, res) => {
@@ -110,8 +104,8 @@ export const getVideos = async (req, res) => {
         if (query) {
             searchCriteria = {
                 $or: [
-                    { title: { $regex: query, $options: 'i' } }, // Case-insensitive search on title
-                    { description: { $regex: query, $options: 'i' } }, // Case-insensitive search on description
+                    { title: { $regex: query, $options: 'i' } }, 
+                    { description: { $regex: query, $options: 'i' } },
                 ]
             };
         }
@@ -124,7 +118,7 @@ export const getVideos = async (req, res) => {
             if (sortBy === 'views') {
                 sortOptions.views = -1; // Sort by views in descending order
             } else if (sortBy === 'uploadDate') {
-                sortOptions.uploadDate = -1; // Newest first
+                sortOptions.uploadDate = -1;
             }
             videos = await Video.find(searchCriteria).sort(sortOptions);
         }
@@ -154,7 +148,6 @@ export const likeDislikeVideo = async (req, res) => {
             return res.status(404).json({ message: "Video not found" });
         }
 
-        // Initialize likes and dislikes as arrays if they are undefined
         if (!Array.isArray(video.likes)) {
             video.likes = [];
         }
@@ -162,7 +155,7 @@ export const likeDislikeVideo = async (req, res) => {
             video.dislikes = [];
         }
 
-        // Process like or dislike action
+        // Process like or dislike action (Not complete yet)
         if (action === 'like') {
             if (video.likes.includes(userId)) {
                 return res.status(400).json({ message: "User has already liked this video" });
@@ -221,7 +214,7 @@ export const getComments = async (req, res) => {
 
         const video = await Video.findById(videoId).select('comments');
 
-        // Check if the video exists
+        // if the video exists
         if (!video) {
             return res.status(404).json({ message: "Video not found" });
         }
@@ -235,7 +228,7 @@ export const getComments = async (req, res) => {
 
 export const updateComment = async (req, res) => {
     try {
-        const { id } = req.params; // Assuming video ID is in req.params.id
+        const { id } = req.params;
         const { userId, commentId, text } = req.body;
 
         // Check if videoId, userId, commentId, and text exist in the request
@@ -243,7 +236,7 @@ export const updateComment = async (req, res) => {
             return res.status(400).json({ message: "Video ID, User ID, Comment ID, and text are required" });
         }
 
-        // Update the comment text for the specified comment within the video's comments array
+        // Update the comment text for the specified comment
         const updatedVideo = await Video.updateOne(
             { _id: id, "comments._id": commentId, "comments.userId": userId },
             { $set: { "comments.$.text": text } }
@@ -289,12 +282,20 @@ export const deleteComment = async (req, res) => {
             { $pull: { comments: { _id: commentId } } }
         );
 
-        const updatedVideo = await Video.findById(id); // Fetch updated video
-        res.status(200).json(updatedVideo.comments); // Return updated comments
+        const updatedVideo = await Video.findById(id);
+        res.status(200).json(updatedVideo.comments);
     } catch (error) {
         console.error("Error while deleting comment: ", error);
         res.status(500).json({ message: "Failed to delete comment", error });
     }
 };
 
-
+export const getUserVideos = async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        const userVideos = await Video.find({ uploader: userId });
+        res.status(200).json(userVideos);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch user's videos", error: error.message });
+    }
+};

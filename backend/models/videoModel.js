@@ -7,8 +7,8 @@ const videoSchema = new mongoose.Schema({
     thumbnailUrl: { type: String, required: true },
     videoUrl: { type: String, required: true },
     views: { type: Number, default: 0 },
-    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],  // Array of ObjectIds for users who liked the video
-    dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],  // Array of ObjectIds for users who disliked the video
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],  
+    dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],  
     uploadDate: { type: Date, default: Date.now },
     comments: [
         {

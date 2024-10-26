@@ -4,11 +4,12 @@ import LoginPage from './pages/LoginPage';
 import PrivateRoute from './components/PrivateRoute';
 import SearchResults from './pages/SearchResults';
 import VideoPlayback from './pages/VideoPlayback';
-import { UserProvider } from './context/UserContext'; // Import UserProvider
+import { UserProvider } from './context/UserContext'; 
+import ChannelPage from './pages/ChannelPage';
 
 function App() {
   return (
-    <UserProvider> {/* Wrap the application with UserProvider */}
+    <UserProvider>
       <Router>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -24,19 +25,19 @@ function App() {
             path="/search" 
             element={
               <PrivateRoute>
-                <SearchResults /> {/* New route for search results */}
+                <SearchResults />
               </PrivateRoute>
             } 
           />
           <Route
-            path="/video/:id" // Route for video playback
+            path="/video/:id"
             element={
               <PrivateRoute>
                 <VideoPlayback />
               </PrivateRoute>
             }
           />
-          {/* Other routes can go here */}
+          <Route path="/channel" element={<PrivateRoute><ChannelPage /></PrivateRoute>} />
         </Routes>
       </Router>
     </UserProvider>
