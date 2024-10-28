@@ -1,4 +1,3 @@
-// frontend/pages/ChannelPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
